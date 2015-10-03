@@ -1,0 +1,65 @@
+apply plugin: 'java'
+apply plugin: 'eclipse'
+
+sourceCompatibility = 1.8
+version = '1.0'
+jar {
+    manifest {
+        attributes 'Implementation-Title': 'Jackson Serializations and Deserializations for jsonapi.org',
+                   'Implementation-Version': version
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+configurations {
+    provided
+}
+
+sourceSets {
+    main.compileClasspath += configurations.provided
+    test.compileClasspath += configurations.provided
+    test.runtimeClasspath += configurations.provided
+}
+
+apply plugin: 'eclipse'
+eclipse.classpath.plusConfigurations += configurations.provided
+
+dependencies {
+    //compile group: 'commons-collections', name: 'commons-collections', version: '3.2'
+    testCompile group: 'junit', name: 'junit', version: '4.+'
+    
+    //Jackson
+    compile 'com.fasterxml.jackson.core:jackson-core:2.6.2'
+    compile 'com.fasterxml.jackson.core:jackson-annotations:2.6.2'
+    compile 'com.fasterxml.jackson.core:jackson-databind:2.6.2'
+    
+    //Provided getProperty reflection method
+    compile('commons-beanutils:commons-beanutils:1.9.2') {
+    	exclude module: "log4j-over-slf4j"
+    	exclude module: "slf4j-log4j12"
+    }
+    
+    //Hibernate annotations used to automatically serialize/deserialize hibernate objects
+    compile 'org.hibernate:hibernate-annotations:3.5.6-Final'
+    
+    //Provides English Pluralisation library
+    compile 'org.atteo:evo-inflector:1.2'
+    
+    //Provided CaseFormat
+    compile 'com.google.guava:guava:19.0-rc2'
+}
+
+test {
+    systemProperties 'property': 'value'
+}
+
+uploadArchives {
+    repositories {
+       flatDir {
+           dirs 'repos'
+       }
+    }
+}
