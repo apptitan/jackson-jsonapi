@@ -1,4 +1,4 @@
-package io.scriptorials.jsonapi;
+package io.apptitan.jsonapi;
 
 public @interface JsonApiId {
 

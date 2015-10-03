@@ -1,4 +1,4 @@
-package io.scriptorials.jsonapi;
+package io.apptitan.jsonapi;
 
 import java.util.Arrays;
 import java.util.HashSet;

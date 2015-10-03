@@ -1,4 +1,4 @@
-package io.scriptorials.jsonapi;
+package io.apptitan.jsonapi;
 
 import java.beans.PropertyDescriptor;
 import java.io.IOException;
@@ -29,8 +29,9 @@ public class JsonApiDeserializer extends JsonDeserializer<Object> implements
 			Object target = targetClass.newInstance();
 
 			JsonNode node = jp.getCodec().readTree(jp);
-			ObjectNode data = (ObjectNode) node.get("data");
-			ObjectNode attributes = (ObjectNode) data.get("attributes");
+			ObjectNode data = (ObjectNode) node.get(JsonApiConstants.DATA);
+			ObjectNode attributes = (ObjectNode) data
+					.get(JsonApiConstants.ATTRIBUTES);
 			if (attributes != null) {
 				attributes.fields().forEachRemaining(
 						entry -> {
@@ -51,7 +52,8 @@ public class JsonApiDeserializer extends JsonDeserializer<Object> implements
 						});
 			}
 
-			ObjectNode relationships = (ObjectNode) data.get("relationships");
+			ObjectNode relationships = (ObjectNode) data
+					.get(JsonApiConstants.RELATIONSHIPS);
 			if (relationships != null) {
 				relationships.fields().forEachRemaining(
 						entry -> {
@@ -62,13 +64,14 @@ public class JsonApiDeserializer extends JsonDeserializer<Object> implements
 								PropertyDescriptor descriptor = PropertyUtils
 										.getPropertyDescriptor(target,
 												propertyName);
-								JsonNode idNode = entry.getValue().get("data")
-										.get("id");
+								JsonNode idNode = entry.getValue()
+										.get(JsonApiConstants.DATA)
+										.get(JsonApiConstants.ID);
 
 								Object relationshipInstance = descriptor
 										.getPropertyType().newInstance();
 								PropertyUtils.setProperty(relationshipInstance,
-										"id", idNode.asLong());
+										JsonApiConstants.ID, idNode.asLong());
 								PropertyUtils.setProperty(target, propertyName,
 										relationshipInstance);
 							} catch (Exception e) {
