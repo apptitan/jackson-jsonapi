@@ -10,7 +10,7 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 
-public class HibernateJsonApiSerializer extends JsonApiSerializer {
+public class JpaJsonApiSerializer extends JsonApiSerializer {
 
 	protected List<Class<? extends Annotation>> belongsToAnnotations() {
 		return Arrays.asList(BelongsTo.class, ManyToOne.class, OneToOne.class,

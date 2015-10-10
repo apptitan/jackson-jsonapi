@@ -1,6 +1,6 @@
 package io.apptitan.jsonapi;
 
-public class JsonApiConstants {
+class JsonApiConstants {
 
 	private JsonApiConstants() {
 		// Intentionally private

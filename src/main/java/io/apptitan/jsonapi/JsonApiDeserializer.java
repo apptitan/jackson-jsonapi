@@ -70,6 +70,8 @@ public class JsonApiDeserializer extends JsonDeserializer<Object> implements
 
 								Object relationshipInstance = descriptor
 										.getPropertyType().newInstance();
+
+								// TODO should be using @Id and @JsonApiId
 								PropertyUtils.setProperty(relationshipInstance,
 										JsonApiConstants.ID, idNode.asLong());
 								PropertyUtils.setProperty(target, propertyName,
