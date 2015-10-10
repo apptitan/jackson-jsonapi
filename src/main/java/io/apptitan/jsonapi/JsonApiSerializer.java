@@ -11,6 +11,12 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import javax.persistence.Id;
+import javax.persistence.ManyToMany;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
+
 import org.apache.commons.beanutils.PropertyUtils;
 import org.atteo.evo.inflector.English;
 
@@ -21,13 +27,21 @@ import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.google.common.base.CaseFormat;
 
-public abstract class JsonApiSerializer extends JsonSerializer<Object> {
+public class JsonApiSerializer extends JsonSerializer<Object> {
 
-	protected abstract List<Class<? extends Annotation>> belongsToAnnotations();
+	protected List<Class<? extends Annotation>> belongsToAnnotations() {
+		return Arrays.asList(BelongsTo.class, ManyToOne.class, OneToOne.class,
+				HasMany.class);
+	}
 
-	protected abstract List<Class<? extends Annotation>> hasManyAnnotations();
+	protected List<Class<? extends Annotation>> hasManyAnnotations() {
+		return Arrays.asList(HasMany.class, OneToMany.class, ManyToMany.class,
+				BelongsTo.class);
+	}
 
-	protected abstract List<Class<? extends Annotation>> idAnnotations();
+	protected List<Class<? extends Annotation>> idAnnotations() {
+		return Arrays.asList(JsonApiId.class, Id.class);
+	}
 
 	@Override
 	public void serialize(Object object, JsonGenerator jgen,

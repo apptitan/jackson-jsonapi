@@ -9,8 +9,6 @@ import java.util.concurrent.ConcurrentMap;
 @SuppressWarnings("serial")
 public class JsonApiResponse extends ConcurrentHashMap<String, Object> {
 
-	public static final String APPLICATION_JSON_API = "application/vnd.api+json";
-
 	private static final ConcurrentMap<String, Object> jsonApiVersion = new ConcurrentHashMap<>();
 	static {
 		jsonApiVersion.put("version", 1);
