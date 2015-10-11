@@ -17,70 +17,60 @@ import com.fasterxml.jackson.databind.deser.ContextualDeserializer;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.CaseFormat;
 
-public class JsonApiDeserializer extends JsonDeserializer<Object> implements
-		ContextualDeserializer {
+public class JsonApiDeserializer extends JsonDeserializer<Object> implements ContextualDeserializer {
 
 	private Class<?> targetClass;
 
+	@SuppressWarnings("unchecked")
 	@Override
-	public Object deserialize(JsonParser jp, DeserializationContext ctxt)
-			throws IOException, JsonProcessingException {
+	public Object deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException, JsonProcessingException {
 		try {
 			Object target = targetClass.newInstance();
 
 			JsonNode node = jp.getCodec().readTree(jp);
 			ObjectNode data = (ObjectNode) node.get(JsonApiConstants.DATA);
-			ObjectNode attributes = (ObjectNode) data
-					.get(JsonApiConstants.ATTRIBUTES);
+			ObjectNode attributes = (ObjectNode) data.get(JsonApiConstants.ATTRIBUTES);
 			if (attributes != null) {
-				attributes.fields().forEachRemaining(
-						entry -> {
-							String propertyName = CaseFormat.LOWER_HYPHEN.to(
-									CaseFormat.LOWER_CAMEL, entry.getKey());
-							try {
-								PropertyDescriptor descriptor = PropertyUtils
-										.getPropertyDescriptor(target,
-												propertyName);
-								Object value = parseValue(
-										descriptor.getPropertyType(),
-										entry.getValue());
-								PropertyUtils.setProperty(target, propertyName,
-										value);
-							} catch (Exception e) {
-								e.printStackTrace();
-							}
-						});
+				attributes.fields().forEachRemaining(entry -> {
+					String propertyName = CaseFormat.LOWER_HYPHEN.to(CaseFormat.LOWER_CAMEL, entry.getKey());
+					try {
+						PropertyDescriptor descriptor = PropertyUtils.getPropertyDescriptor(target, propertyName);
+						Object value = parseValue(descriptor.getPropertyType(), entry.getValue());
+						PropertyUtils.setProperty(target, propertyName, value);
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+				});
 			}
 
-			ObjectNode relationships = (ObjectNode) data
-					.get(JsonApiConstants.RELATIONSHIPS);
+			ObjectNode relationships = (ObjectNode) data.get(JsonApiConstants.RELATIONSHIPS);
 			if (relationships != null) {
-				relationships.fields().forEachRemaining(
-						entry -> {
-							try {
-								String propertyName = CaseFormat.LOWER_HYPHEN
-										.to(CaseFormat.LOWER_CAMEL,
-												entry.getKey());
-								PropertyDescriptor descriptor = PropertyUtils
-										.getPropertyDescriptor(target,
-												propertyName);
-								JsonNode idNode = entry.getValue()
-										.get(JsonApiConstants.DATA)
-										.get(JsonApiConstants.ID);
+				relationships.fields().forEachRemaining(entry -> {
+					try {
+						String propertyName = CaseFormat.LOWER_HYPHEN.to(CaseFormat.LOWER_CAMEL, entry.getKey());
+						PropertyDescriptor descriptor = PropertyUtils.getPropertyDescriptor(target, propertyName);
+						JsonNode idNode = entry.getValue().get(JsonApiConstants.DATA).get(JsonApiConstants.ID);
 
-								Object relationshipInstance = descriptor
-										.getPropertyType().newInstance();
+						if (descriptor.getPropertyType().isEnum()) {
+							Class<? extends Enum> enumClass = (Class<? extends Enum>) descriptor.getPropertyType();
+							Enum<?> enumValue = Enum.valueOf(enumClass, idNode.asText());
+							PropertyUtils.setProperty(target, propertyName, enumValue);
+						} else {
+							Object relationshipInstance = descriptor.getPropertyType().newInstance();
 
-								// TODO should be using @Id and @JsonApiId
-								PropertyUtils.setProperty(relationshipInstance,
-										JsonApiConstants.ID, idNode.asLong());
-								PropertyUtils.setProperty(target, propertyName,
-										relationshipInstance);
-							} catch (Exception e) {
-								// TODO Auto-generated catch block
-								e.printStackTrace();
-							}
-						});
+							// TODO should be using @Id and @JsonApiId.
+							// Should
+							// be assume id is Long, needs to use
+							// reflection
+							// to get the type
+						PropertyUtils.setProperty(relationshipInstance, JsonApiConstants.ID, idNode.asLong());
+						PropertyUtils.setProperty(target, propertyName, relationshipInstance);
+					}
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}	);
 			}
 
 			return target;
@@ -91,8 +81,7 @@ public class JsonApiDeserializer extends JsonDeserializer<Object> implements
 	}
 
 	@Override
-	public JsonDeserializer<?> createContextual(DeserializationContext ctxt,
-			BeanProperty property) throws JsonMappingException {
+	public JsonDeserializer<?> createContextual(DeserializationContext ctxt, BeanProperty property) throws JsonMappingException {
 		targetClass = ctxt.getContextualType().getRawClass();
 		return this;
 	}
