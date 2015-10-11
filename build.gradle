@@ -46,9 +46,6 @@ dependencies {
     	exclude module: "slf4j-log4j12"
     }
     
-    //Hibernate annotations used to automatically serialize/deserialize hibernate objects
-    //compile 'org.hibernate:hibernate-annotations:3.5.6-Final'
-    
     //JPA Annotations
     provided 'javax.persistence:persistence-api:1.0.2'
     

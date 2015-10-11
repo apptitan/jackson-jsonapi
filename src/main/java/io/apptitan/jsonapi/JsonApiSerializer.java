@@ -29,6 +29,10 @@ import com.google.common.base.CaseFormat;
 
 public class JsonApiSerializer extends JsonSerializer<Object> {
 
+	protected String namespace() {
+		return "/jsonapi";
+	}
+
 	protected List<Class<? extends Annotation>> belongsToAnnotations() {
 		return Arrays.asList(BelongsTo.class, ManyToOne.class, OneToOne.class,
 				HasMany.class);
@@ -60,23 +64,35 @@ public class JsonApiSerializer extends JsonSerializer<Object> {
 			JsonApiRelationshipMap JSONAPIRelationshipMap)
 			throws IllegalAccessException, InvocationTargetException,
 			NoSuchMethodException, IOException {
+
 		// Model Information
-		final String modelName = CaseFormat.UPPER_CAMEL.to(
+		// final String camelisedModelName = CaseFormat.UPPER_CAMEL.to(
+		// CaseFormat.LOWER_CAMEL, object.getClass().getSimpleName());
+		// final String camelisedModelNamePlural = English
+		// .plural(camelisedModelName);
+		final String hyphenatedModelName = CaseFormat.UPPER_CAMEL.to(
 				CaseFormat.LOWER_HYPHEN, object.getClass().getSimpleName());
-		final String modelNamePlural = English.plural(modelName);
+		final String hyphenatedModelNamePlural = English
+				.plural(hyphenatedModelName);
 
 		// Root
 		jgen.writeStartObject();
 
 		// Write out the id
-		final Object idValue = PropertyUtils.getProperty(object,
-				JSONAPIRelationshipMap.idAttribute.getName());
+		final Object idValue;
+		if (object.getClass().isEnum()) {
+			idValue = object.getClass().getMethod("name").invoke(object);
+		} else {
+			idValue = PropertyUtils.getProperty(object,
+					JSONAPIRelationshipMap.idAttribute.getName());
+		}
 		jgen.writeStringField(JsonApiConstants.ID, String.valueOf(idValue));
-		jgen.writeStringField(JsonApiConstants.TYPE, modelNamePlural);
+		jgen.writeStringField(JsonApiConstants.TYPE, hyphenatedModelNamePlural);
 
 		jgen.writeObjectFieldStart(JsonApiConstants.LINKS);
 		jgen.writeObjectField(JsonApiConstants.SELF, String.format(
-				JsonApiConstants.ID_FORMAT, modelNamePlural, idValue));
+				JsonApiConstants.ID_FORMAT, namespace(),
+				hyphenatedModelNamePlural, String.valueOf(idValue)));
 		jgen.writeEndObject();
 
 		// Attributes
@@ -93,17 +109,19 @@ public class JsonApiSerializer extends JsonSerializer<Object> {
 		// hasMany
 		jgen.writeObjectFieldStart(JsonApiConstants.RELATIONSHIPS);
 		for (Field field : JSONAPIRelationshipMap.hasManyRelationships) {
-			String fieldName = field.getName();
 			String hyphenatedFieldName = CaseFormat.LOWER_CAMEL.to(
 					CaseFormat.LOWER_HYPHEN, field.getName());
-			jgen.writeObjectFieldStart(fieldName);
+
+			jgen.writeObjectFieldStart(hyphenatedFieldName);
 			jgen.writeObjectFieldStart(JsonApiConstants.LINKS);
 
 			jgen.writeObjectField(JsonApiConstants.SELF, String.format(
-					JsonApiConstants.RELATIONSHIP_FORMAT, modelNamePlural,
-					idValue, hyphenatedFieldName));
+					JsonApiConstants.RELATIONSHIP_FORMAT, namespace(),
+					hyphenatedModelNamePlural, String.valueOf(idValue),
+					hyphenatedFieldName));
 			jgen.writeObjectField(JsonApiConstants.RELATED, String.format(
-					JsonApiConstants.RELATED_FORMAT, modelNamePlural, idValue,
+					JsonApiConstants.RELATED_FORMAT, namespace(),
+					hyphenatedModelNamePlural, String.valueOf(idValue),
 					hyphenatedFieldName));
 
 			jgen.writeEndObject();
@@ -122,11 +140,13 @@ public class JsonApiSerializer extends JsonSerializer<Object> {
 			jgen.writeObjectFieldStart(JsonApiConstants.LINKS);
 
 			jgen.writeObjectField(JsonApiConstants.SELF, String.format(
-					JsonApiConstants.RELATIONSHIP_FORMAT, modelNamePlural,
-					idValue, hyphenatedFieldName));
+					JsonApiConstants.RELATIONSHIP_FORMAT, namespace(),
+					hyphenatedModelNamePlural, String.valueOf(idValue),
+					hyphenatedModelName));
 			jgen.writeObjectField(JsonApiConstants.RELATED, String.format(
-					JsonApiConstants.RELATED_FORMAT, modelNamePlural, idValue,
-					hyphenatedFieldName));
+					JsonApiConstants.RELATED_FORMAT, namespace(),
+					hyphenatedModelNamePlural, String.valueOf(idValue),
+					hyphenatedModelName));
 
 			jgen.writeEndObject();
 

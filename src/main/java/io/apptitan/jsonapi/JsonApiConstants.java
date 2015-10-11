@@ -6,9 +6,9 @@ class JsonApiConstants {
 		// Intentionally private
 	}
 
-	public static final String ID_FORMAT = "/%s/%d";
-	public static final String RELATED_FORMAT = "/%s/%d/%s";
-	public static final String RELATIONSHIP_FORMAT = "/%s/%d/relationships/%s";
+	public static final String ID_FORMAT = "%s/%s/%s";
+	public static final String RELATED_FORMAT = "%s/%s/%s/%s";
+	public static final String RELATIONSHIP_FORMAT = "%s/%s/%s/relationships/%s";
 	public static final String RELATED = "related";
 	public static final String TYPE = "type";
 	public static final String ID = "id";
